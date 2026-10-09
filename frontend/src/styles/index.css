@@ -1,0 +1,223 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  color: #1e2923;
+  background: #f5f3eb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(0, 1.1fr) minmax(390px, 0.9fr);
+}
+
+.login-art {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(28px, 6vw, 88px);
+  color: #f5f3eb;
+  background-color: #263f32;
+  background-image: radial-gradient(#f5f3eb20 0.7px, transparent 0.7px);
+  background-size: 11px 11px;
+}
+
+.wordmark {
+  margin: 0;
+  color: #f3be53;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.art-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 570px;
+  padding-bottom: 4vh;
+}
+
+.eyebrow {
+  margin: 0 0 15px;
+  color: #a84d38;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.login-art .eyebrow {
+  color: #f3be53;
+}
+
+.art-copy h1 {
+  max-width: 10ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 5.5vw, 6.4rem);
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.art-copy > p:last-child {
+  max-width: 360px;
+  margin: 24px 0 0;
+  color: #e1e3d6;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.art-note {
+  align-self: flex-end;
+  color: #d8dfd5;
+  font-size: 0.75rem;
+}
+
+.login-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(32px, 7vw, 104px);
+  background: #f5f3eb;
+}
+
+.login-content {
+  width: min(100%, 420px);
+  margin: auto;
+}
+
+.login-content h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.login-description {
+  margin: 12px 0 34px;
+  color: #647068;
+}
+
+.role-picker {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.role-picker legend {
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.role-option {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 15px;
+  border: 1px solid #d8d7cf;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.role-option.selected {
+  border-color: #263f32;
+  background: #e9ede7;
+}
+
+.role-option input {
+  accent-color: #263f32;
+}
+
+.primary-button {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 4px;
+  color: white;
+  background: #a34432;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.primary-button:hover {
+  background: #873727;
+}
+
+.primary-button:focus-visible,
+.role-option:focus-within {
+  outline: 3px solid #dfa638;
+  outline-offset: 3px;
+}
+
+.demo-note {
+  margin: 18px 0 0;
+  color: #647068;
+  font-size: 0.8rem;
+}
+
+.login-panel footer {
+  margin-top: auto;
+  padding-top: 40px;
+  color: #647068;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-art {
+    min-height: 270px;
+    padding: 28px;
+  }
+
+  .art-copy {
+    padding: 44px 0 0;
+  }
+
+  .art-copy h1 {
+    max-width: 15ch;
+    font-size: 2.7rem;
+  }
+
+  .art-copy > p:last-child,
+  .art-note {
+    display: none;
+  }
+
+  .login-panel {
+    min-height: calc(100vh - 270px);
+    padding: 34px 24px;
+  }
+}
