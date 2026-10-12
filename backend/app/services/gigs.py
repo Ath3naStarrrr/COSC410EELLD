@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC
 from enum import StrEnum
 
 from sqlalchemy.orm import Session
@@ -23,6 +24,11 @@ class GigViewer:
 
 
 def _detail(gig: Gig) -> GigDetail:
+    created_at = gig.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=UTC)
+    else:
+        created_at = created_at.astimezone(UTC)
     return GigDetail(
         id=gig.id,
         venue=gig.venue,
@@ -38,7 +44,7 @@ def _detail(gig: Gig) -> GigDetail:
         required_members=sorted(
             assignment.member.name for assignment in gig.assignments
         ),
-        created_at=gig.created_at,
+        created_at=created_at,
     )
 
 

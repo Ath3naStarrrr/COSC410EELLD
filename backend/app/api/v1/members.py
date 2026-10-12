@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
-from app.schemas.common import Page
+from app.schemas.common import ErrorResponse, Page
 from app.schemas.members import MemberRead
 from app.services.gigs import list_members
 
@@ -12,7 +12,11 @@ router = APIRouter(prefix="/members", tags=["members"])
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-@router.get("", response_model=Page[MemberRead])
+@router.get(
+    "",
+    response_model=Page[MemberRead],
+    responses={422: {"model": ErrorResponse}},
+)
 def read_members(
     session: SessionDep,
     q: str | None = None,

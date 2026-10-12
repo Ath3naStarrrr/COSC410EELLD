@@ -18,9 +18,7 @@ def get_actor(
     if role == ViewerRole.MANAGER.value:
         return DemoActor(viewer=GigViewer(role=ViewerRole.MANAGER))
     if role == ViewerRole.MEMBER.value and member_id is not None:
-        return DemoActor(
-            viewer=GigViewer(role=ViewerRole.MEMBER, member_id=member_id)
-        )
+        return DemoActor(viewer=GigViewer(role=ViewerRole.MEMBER, member_id=member_id))
     raise HTTPException(status_code=401, detail="Choose a demo role to continue.")
 
 

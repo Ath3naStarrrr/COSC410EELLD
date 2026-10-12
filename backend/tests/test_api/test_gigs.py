@@ -29,9 +29,7 @@ async def create_gig(
     manager_headers: dict[str, str],
     payload: dict[str, object],
 ) -> dict[str, object]:
-    response = await client.post(
-        "/api/v1/gigs", headers=manager_headers, json=payload
-    )
+    response = await client.post("/api/v1/gigs", headers=manager_headers, json=payload)
     assert response.status_code == 201
     return response.json()
 
@@ -49,6 +47,7 @@ async def test_manager_creates_booked_gig_with_ordered_schedule(
     assert response.headers["location"].endswith("/api/v1/gigs/1")
     body = response.json()
     assert body["status"] == "booked"
+    assert body["created_at"].endswith("Z")
     assert body["venue"] == "The Blue Door"
     assert [item["label"] for item in body["schedule"]] == [
         "Load in",
@@ -62,15 +61,26 @@ async def test_manager_creates_booked_gig_with_ordered_schedule(
     ]
 
 
+async def test_manager_can_book_without_required_members(
+    client: AsyncClient, manager_headers: dict[str, str]
+) -> None:
+    response = await client.post(
+        "/api/v1/gigs",
+        headers=manager_headers,
+        json=gig_payload("The Blue Door", "2026-10-18", []),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["required_members"] == []
+
+
 async def test_gig_date_is_required_and_uses_error_envelope(
     client: AsyncClient, manager_headers: dict[str, str]
 ) -> None:
     payload = gig_payload("The Blue Door", "2026-10-18", [1])
     del payload["date"]
 
-    response = await client.post(
-        "/api/v1/gigs", headers=manager_headers, json=payload
-    )
+    response = await client.post("/api/v1/gigs", headers=manager_headers, json=payload)
 
     assert response.status_code == 422
     assert response.json() == {
@@ -128,15 +138,90 @@ async def test_unassigned_member_cannot_read_gig_details(
     assert response.json()["code"] == "not_found"
 
 
-async def test_member_list_supports_pagination_envelope(client: AsyncClient) -> None:
-    response = await client.get(
-        "/api/v1/members", params={"page": 1, "page_size": 1}
+async def test_assigned_member_can_read_gig_details(
+    client: AsyncClient, manager_headers: dict[str, str], member_headers: dict[str, str]
+) -> None:
+    await create_gig(
+        client,
+        manager_headers,
+        gig_payload("The Blue Door", "2026-10-18", [1]),
     )
+
+    response = await client.get("/api/v1/gigs/1", headers=member_headers)
+
+    assert response.status_code == 200
+    assert response.json()["contact"] == "Jordan, 555-0100"
+    assert response.json()["pay"] == "$500"
+
+
+async def test_member_cannot_book_a_gig(
+    client: AsyncClient, member_headers: dict[str, str]
+) -> None:
+    response = await client.post(
+        "/api/v1/gigs",
+        headers=member_headers,
+        json=gig_payload("The Blue Door", "2026-10-18", [1]),
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "code": "forbidden",
+        "detail": "Manager access is required.",
+    }
+
+
+async def test_gig_list_requires_demo_role(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/gigs")
+
+    assert response.status_code == 401
+    assert response.json()["code"] == "unauthorized"
+
+
+async def test_manager_cannot_assign_unknown_member(
+    client: AsyncClient, manager_headers: dict[str, str]
+) -> None:
+    response = await client.post(
+        "/api/v1/gigs",
+        headers=manager_headers,
+        json=gig_payload("The Blue Door", "2026-10-18", [999]),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "code": "not_found",
+        "detail": "A selected member was not found.",
+    }
+
+
+async def test_member_list_supports_pagination_envelope(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/members", params={"page": 1, "page_size": 1})
 
     assert response.status_code == 200
     assert response.json() == {
         "items": [{"id": 1, "name": "Band Member 1"}],
         "total": 3,
         "page": 1,
+        "page_size": 1,
+    }
+
+
+async def test_member_list_search_sort_and_past_end_page(client: AsyncClient) -> None:
+    searched = await client.get(
+        "/api/v1/members",
+        params={"q": "Band Member", "sort": "-name", "page": 3, "page_size": 1},
+    )
+    past_end = await client.get("/api/v1/members", params={"page": 4, "page_size": 1})
+
+    assert searched.status_code == 200
+    assert searched.json() == {
+        "items": [{"id": 1, "name": "Band Member 1"}],
+        "total": 3,
+        "page": 3,
+        "page_size": 1,
+    }
+    assert past_end.json() == {
+        "items": [],
+        "total": 3,
+        "page": 4,
         "page_size": 1,
     }

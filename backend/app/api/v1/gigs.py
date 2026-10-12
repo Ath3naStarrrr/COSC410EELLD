@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import DemoActor, get_actor, require_manager
 from app.core.database import get_session
 from app.core.errors import GigNotVisibleError, UnknownMembersError
-from app.schemas.common import Page
+from app.schemas.common import ErrorResponse, Page
 from app.schemas.gigs import GigCreate, GigDetail, GigSummary
 from app.services.gigs import create_gig, get_gig, list_gigs
 
@@ -16,7 +16,11 @@ ActorDep = Annotated[DemoActor, Depends(get_actor)]
 ManagerDep = Annotated[DemoActor, Depends(require_manager)]
 
 
-@router.get("", response_model=Page[GigDetail | GigSummary])
+@router.get(
+    "",
+    response_model=Page[GigDetail | GigSummary],
+    responses={401: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 def read_gigs(
     session: SessionDep,
     actor: ActorDep,
@@ -35,7 +39,16 @@ def read_gigs(
     )
 
 
-@router.get("/{gig_id}", response_model=GigDetail, name="read_gig")
+@router.get(
+    "/{gig_id}",
+    response_model=GigDetail,
+    name="read_gig",
+    responses={
+        401: {"model": ErrorResponse},
+        404: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
+    },
+)
 def read_gig(gig_id: int, session: SessionDep, actor: ActorDep) -> GigDetail:
     try:
         return get_gig(session, actor.viewer, gig_id)
@@ -43,7 +56,17 @@ def read_gig(gig_id: int, session: SessionDep, actor: ActorDep) -> GigDetail:
         raise HTTPException(status_code=404, detail="Gig not found.") from error
 
 
-@router.post("", response_model=GigDetail, status_code=201)
+@router.post(
+    "",
+    response_model=GigDetail,
+    status_code=201,
+    responses={
+        401: {"model": ErrorResponse},
+        403: {"model": ErrorResponse},
+        404: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
+    },
+)
 def add_gig(
     payload: GigCreate,
     request: Request,

@@ -46,7 +46,7 @@ class Gig(Base, CreatedAtMixin):
     )
 
 
-class GigAssignment(Base):
+class GigAssignment(Base, CreatedAtMixin):
     __tablename__ = "gig_assignments"
 
     gig_id: Mapped[int] = mapped_column(
@@ -59,7 +59,7 @@ class GigAssignment(Base):
     member: Mapped["Member"] = relationship(back_populates="assignments")
 
 
-class GigScheduleItem(Base):
+class GigScheduleItem(Base, CreatedAtMixin):
     __tablename__ = "gig_schedule_items"
 
     id: Mapped[int] = mapped_column(primary_key=True)

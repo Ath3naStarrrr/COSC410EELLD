@@ -1,0 +1,55 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/backend.Dockerfile
+    environment:
+      DATABASE_URL: sqlite:////data/roadhouse.db
+    volumes:
+      - roadhouse-data:/data
+    networks:
+      - roadhouse
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/frontend.Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - roadhouse
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # Optional PostgreSQL service for a future DATABASE_URL switch.
+  # db:
+  #   image: postgres:17-alpine
+  #   environment:
+  #     POSTGRES_DB: roadhouse
+  #     POSTGRES_USER: roadhouse
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set locally before enabling PostgreSQL}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - roadhouse
+
+networks:
+  roadhouse:
+    driver: bridge
+
+volumes:
+  roadhouse-data:
+  # postgres-data:
